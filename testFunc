@@ -1,0 +1,97 @@
+import numpy as np
+from matplotlib import pyplot as plt
+import utilities
+
+segmentLength = 20
+def splitSegment(xs, ys):
+    divider = 0
+    if(len(xs) >= segmentLength):
+        divider = len(xs)/ segmentLength
+
+    return np.split(xs, divider), np.split(ys, divider)
+
+def leastSquares(sampleX, sampleY, poly):
+    #Calculating coefficients for target polynomial
+    xs = np.array(sampleX)
+    ys = np.array(sampleY)
+    powColumns = np.ones((len(xs), 1))
+    xArray = np.zeros((len(xs), 1))
+    if(poly > 1):
+        for p in range(1, poly):
+            for i in range(len(xs)):
+                xValue = np.power(xs[i], p)
+                xArray[i, 0] = xValue
+            powColumns = np.concatenate((powColumns, xArray), axis=1)
+    w = np.linalg.inv(np.dot(powColumns.T, powColumns))
+    a = np.dot(np.dot(w, powColumns.T), ys)
+
+    #Make y_plot of regression
+    y_plot = np.array([])
+    y_val = 0.
+    for x in range(len(xs)):
+        for i in range(len(a)):
+            y_val = y_val + a[i] * pow(xs[x], i)
+        y_plot = np.append(y_plot, y_val)
+        y_val = 0.
+    return y_plot, a
+
+def squaredError(y_plot, ys, a):
+    error = 0.
+    for i in range((len(ys))):
+        diff = y_plot[i] - ys[i]
+        squaredDiff = pow(diff, 2)
+        error = error + squaredDiff
+    #print(ys)
+    return error, y_plot, a
+
+
+
+def main():
+    xs, ys = utilities.load_points_from_file("train_data/adv_3.csv")
+    sampleX, sampleY = splitSegment(xs, ys)
+    limit = 5
+
+    ySetArray = []
+    totalError = 0.
+    bestYs = np.array([])
+    powerSet = []
+    bestPowerSet = []
+    for l in range(len(sampleX)):
+        errorArray = np.array([])
+        actualErrorArray = np.array([])
+        bestError = 0.
+        bestErrorIndex = 0
+        for p in range(1, limit+1):
+            y_plot, a = leastSquares(sampleX[l], sampleY[l], p)
+            #print("Plot for poly", p,"in segment", l,"is:", y_plot)
+            error, y_set, a = squaredError(y_plot, ys[l*segmentLength: l*segmentLength+segmentLength], a)
+            actualErrorArray = np.append(actualErrorArray, error)
+            error = error * p
+            errorArray = np.append(errorArray, error)
+            ySetArray.append(y_set)
+            powerSet.append(a)
+        #print("Set of coefficients for segment", l, "is", powerSet)
+        #print("ErrorArray for poly in segment", l,"is:", errorArray)
+        bestError = np.min(errorArray)
+        bestErrorIndex = np.argmin(errorArray)
+        actualError = actualErrorArray[bestErrorIndex]
+        bestPowerSet = powerSet[bestErrorIndex]
+        bestYs = np.append(bestYs, ySetArray[bestErrorIndex])
+        if(l == 3):
+            #print(sampleX[l])
+            print(errorArray)
+        #print("set of bestYs", bestYs.shape)
+
+        totalError = totalError + actualError
+        print("Best Error from coefficients:", bestPowerSet, "with error:", bestError, "for segment", l)
+        powerSet.clear()
+        ySetArray.clear()
+    y_final_plot = bestYs
+    print("TotalError:", totalError)
+
+
+
+    utilities.view_data_segments(xs , ys, y_final_plot)
+
+
+main()

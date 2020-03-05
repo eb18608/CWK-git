@@ -15,7 +15,7 @@ def load_points_from_file(filename):
     return points[0].values, points[1].values
 
 
-def view_data_segments(xs, ys):
+def view_data_segments(xs, ys, y_final_plot):
     """Visualises the input file with each segment plotted in a different colour.
     Args:
         xs : List/array-like of x co-ordinates.
@@ -28,6 +28,9 @@ def view_data_segments(xs, ys):
     len_data = len(xs)
     num_segments = len_data // 20
     colour = np.concatenate([[i] * 20 for i in range(num_segments)])
+    colourSegment = ['r', 'g', 'b']
     plt.set_cmap('Dark2')
     plt.scatter(xs, ys, c=colour)
+
+    plt.plot(xs, y_final_plot, 'r')
     plt.show()
