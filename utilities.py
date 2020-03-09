@@ -32,5 +32,5 @@ def view_data_segments(xs, ys, y_final_plot):
     plt.set_cmap('Dark2')
     plt.scatter(xs, ys, c=colour)
 
-    plt.plot(xs, y_final_plot, 'r')
+    plt.plot(xs, y_final_plot.T, 'r')
     plt.show()
