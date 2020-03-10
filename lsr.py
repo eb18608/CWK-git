@@ -151,9 +151,9 @@ def main():
         powerSet.clear()
         ySetArray.clear()
 
-    y_final_plot = []
-    for plot in bestYs:
-        y_final_plot += plot
+    y_final_plot = np.array(bestYs)
+    # for plot in bestYs:
+    #     y_final_plot += bestYs[plot]
 
     print("TotalError:", totalError)
     if(plot == True):
