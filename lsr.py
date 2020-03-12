@@ -42,15 +42,17 @@ def leastSquares(sampleX, sampleY, poly):
             y_val = y_val + a[i] * pow(xs[x], i)
         y_plot = np.append(y_plot, y_val)
         y_val = 0.
+
     return y_plot, a
 
 def leastSquaresSin(sampleX, sampleY):
+
     sinX = np.sin(sampleX)
-    #concat column of 1s with xs
     ones = np.array([np.ones(len(sampleX))])
     xi = np.column_stack((ones.T, sinX))
     w = np.linalg.inv(np.dot(xi.T, xi))
     a = np.dot(np.dot(w, xi.T), sampleY)
+
     #Make y_plot of regression
     y_plot = np.array([])
     y_val = 0.
@@ -67,11 +69,10 @@ def squaredError(y_plot, ys, a):
         diff = y_plot[i] - ys[i]
         squaredDiff = pow(diff, 2)
         error = error + squaredDiff
-    #print(ys)
+
     return error, y_plot, a
 
 def inputOutput():
-    print(sys.argv)
     if (len(sys.argv) > 1):
         fileName = "train_data/" + sys.argv[1]
         if(len(sys.argv) == 3):
@@ -89,16 +90,21 @@ def inputOutput():
 
 
 def main():
+
     plot, fileName = inputOutput()
 
     xs, ys = utilities.load_points_from_file(fileName)
     sampleX, sampleY = splitSegment(xs, ys)
-    limit = 5
+    limit = 3
+
+
+
     ySetArray = []
     totalError = 0.
     bestYs = []
     powerSet = []
     bestPowerSet = []
+    finalPowerSet = []
     for l in range(len(sampleX)):
         errorArray = np.array([])
         actualErrorArray = np.array([])
@@ -106,9 +112,9 @@ def main():
         bestErrorIndex = 0
         for p in range(1, limit+1):
             y_plot, a = leastSquares(sampleX[l], sampleY[l], p)
-            #print("Plot for poly", p,"in segment", l,"is:", y_plot)
             error, y_set, a = squaredError(y_plot, ys[l*segmentLength: l*segmentLength+segmentLength], a)
             actualErrorArray = np.append(actualErrorArray, error)
+            #Scaled Error
             error = error * p
             errorArray = np.append(errorArray, error)
             ySetArray.append(y_set)
@@ -119,7 +125,6 @@ def main():
         y_plot, a = leastSquaresSin(sampleX[l], sampleY[l])
         sinePlot = np.array(y_plot)
         error, y_set, a = squaredError(y_plot, ys[l*segmentLength: l*segmentLength+segmentLength], a)
-        #print("Error for sine graph is:", error)
         actualErrorArray = np.append(actualErrorArray, error)
         error = error * 1.25
         errorArray = np.append(errorArray, error)
@@ -130,35 +135,23 @@ def main():
         error = 0.
         y_set = None
 
-        #print("Actual Error for segment:",l ,"is:", actualErrorArray)
-        #print("Set of coefficients for segment", l, "is", powerSet)
-        #print("ErrorArray for poly in segment", l,"is:", errorArray)
-        bestError = np.min(errorArray)
         bestErrorIndex = np.argmin(errorArray)
-        if (bestErrorIndex == 5):
-            print("used sine wave")
+        bestError = actualErrorArray[bestErrorIndex]
+
         actualError = actualErrorArray[bestErrorIndex]
         bestPowerSet = powerSet[bestErrorIndex]
+        finalPowerSet.append(bestErrorIndex)
         bestYs.append(ySetArray[bestErrorIndex])
 
-        # if(l == 3):
-        #     #print(sampleX[l])
-        #     print(errorArray)
-        #print("set of bestYs", bestYs.shape)
-
         totalError = totalError + actualError
+
         print("Best Error from coefficients:", bestPowerSet, "with error:", bestError, "for segment", l)
         powerSet.clear()
         ySetArray.clear()
-
     y_final_plot = np.array(bestYs)
-    # for plot in bestYs:
-    #     y_final_plot += bestYs[plot]
 
     print("TotalError:", totalError)
     if(plot == True):
-        utilities.view_data_segments(xs , ys, y_final_plot)
-
-
+        utilities.view_data_segments(xs , ys, y_final_plot, finalPowerSet)
 
 main()
