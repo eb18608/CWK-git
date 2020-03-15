@@ -17,25 +17,21 @@ def splitSegment(xs, ys):
 
     return np.split(xs, divider), np.split(ys, divider)
 
-def leastSquares(sampleX, sampleY, poly):
+def leastSquaresPoly(sampleX, sampleY, poly):
     #Calculating coefficients for target polynomial
     xs = np.array(sampleX)
     ys = np.array(sampleY)
     powColumns = np.ones((len(xs), 1))
     xArray = np.zeros((len(xs), 1))
-    #Check for horizontal line
-    if(poly > 1):
-        #Matrix Multiplicaition for Least Square Regression to give 'a' (coefficients)
-        for p in range(1, poly):
-            for i in range(len(xs)):
+    if(poly > 1):                                                       # Check for horizontal line
+        for p in range(1, poly):                                        # Matrix Multiplicaition for Least Square
+            for i in range(len(xs)):                                    #Regression to give 'a' (coefficients)
                 xValue = np.power(xs[i], p)
                 xArray[i, 0] = xValue
-            powColumns = np.concatenate((powColumns, xArray), axis=1)
+            powColumns = np.concatenate((powColumns, xArray), axis=1)   #Creating 'X' matrix with x powers from dataset
     w = np.linalg.inv(np.dot(powColumns.T, powColumns))
     a = np.dot(np.dot(w, powColumns.T), ys)
-
-    #Make y_plot of regression
-    y_plot = np.array([])
+    y_plot = np.array([])                                               #Make y_plot of regression
     y_val = 0.
     for x in range(len(xs)):
         for i in range(len(a)):
@@ -48,6 +44,24 @@ def leastSquares(sampleX, sampleY, poly):
 def leastSquaresSin(sampleX, sampleY):
 
     sinX = np.sin(sampleX)
+    ones = np.array([np.ones(len(sampleX))])
+    xi = np.column_stack((ones.T, sinX))
+    w = np.linalg.inv(np.dot(xi.T, xi))
+    a = np.dot(np.dot(w, xi.T), sampleY)
+
+    #Make y_plot of regression
+    y_plot = np.array([])
+    y_val = 0.
+
+    for x in range(len(sampleX)):
+        y_val = a[0] + a[1]*sinX[x]
+        y_plot = np.append(y_plot, y_val)
+
+    return y_plot, a
+
+def leastSquaresExp(sampleX, sampleY):
+
+    sinX = np.exp(sampleX)
     ones = np.array([np.ones(len(sampleX))])
     xi = np.column_stack((ones.T, sinX))
     w = np.linalg.inv(np.dot(xi.T, xi))
@@ -95,7 +109,7 @@ def main():
 
     xs, ys = utilities.load_points_from_file(fileName)
     sampleX, sampleY = splitSegment(xs, ys)
-    limit = 3
+    limit = 6
 
 
 
@@ -105,20 +119,35 @@ def main():
     powerSet = []
     bestPowerSet = []
     finalPowerSet = []
+    sampl = np.random.uniform(low=10000, high=1000000, size=(20,1))
     for l in range(len(sampleX)):
         errorArray = np.array([])
         actualErrorArray = np.array([])
         bestError = 0.
         bestErrorIndex = 0
         for p in range(1, limit+1):
-            y_plot, a = leastSquares(sampleX[l], sampleY[l], p)
-            error, y_set, a = squaredError(y_plot, ys[l*segmentLength: l*segmentLength+segmentLength], a)
-            actualErrorArray = np.append(actualErrorArray, error)
-            #Scaled Error
-            error = error * p
-            errorArray = np.append(errorArray, error)
-            ySetArray.append(y_set)
-            powerSet.append(a)
+
+            # if(p == 3):
+            #     #print("I am a quadratic")
+            #     y_plot = sampl
+            #     a = [0., 0., 0.]
+            #     error = 10000000000000.
+            #     y_set = sampl
+            #     actualErrorArray = np.append(actualErrorArray, error)
+            #     error = error * p
+            #     errorArray = np.append(errorArray, error)
+            #     ySetArray.append(y_set)
+            #     powerSet.append(a)
+            # else:
+                print(p)
+                y_plot, a = leastSquaresPoly(sampleX[l], sampleY[l], p)
+                error, y_set, a = squaredError(y_plot, ys[l*segmentLength: l*segmentLength+segmentLength], a)
+                actualErrorArray = np.append(actualErrorArray, error)
+                #Scaled Error
+                error = error * p
+                errorArray = np.append(errorArray, error)
+                ySetArray.append(y_set)
+                powerSet.append(a)
 
 
         #Sine function
@@ -130,11 +159,20 @@ def main():
         errorArray = np.append(errorArray, error)
         ySetArray.append(y_set)
         powerSet.append(a)
+        #Exp function
+        y_plot, a = leastSquaresExp(sampleX[l], sampleY[l])
+        expPlot = np.array(y_plot)
+        error, y_set, a = squaredError(y_plot, ys[l*segmentLength: l*segmentLength+segmentLength], a)
+        actualErrorArray = np.append(actualErrorArray, error)
+        error = error * 1.25
+        errorArray = np.append(errorArray, error)
+        ySetArray.append(y_set)
+        powerSet.append(a)
         y_plot = None
         a = None
         error = 0.
         y_set = None
-
+        print(actualErrorArray)
         bestErrorIndex = np.argmin(errorArray)
         bestError = actualErrorArray[bestErrorIndex]
 
@@ -152,6 +190,6 @@ def main():
 
     print("TotalError:", totalError)
     if(plot == True):
-        utilities.view_data_segments(xs , ys, y_final_plot, finalPowerSet)
+        utilities.view_data_segments(xs , ys, y_final_plot, finalPowerSet, fileName)
 
 main()
