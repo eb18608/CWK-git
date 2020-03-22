@@ -109,7 +109,7 @@ def main():
 
     xs, ys = utilities.load_points_from_file(fileName)
     sampleX, sampleY = splitSegment(xs, ys)
-    limit = 6
+    limit = 4
 
 
 
@@ -121,74 +121,65 @@ def main():
     finalPowerSet = []
     sampl = np.random.uniform(low=10000, high=1000000, size=(20,1))
     for l in range(len(sampleX)):
-        errorArray = np.array([])
+        min = np.min(sampleY[l])
+        max = np.max(sampleY[l])
+
+        ScaledErrorArray = np.array([])
         actualErrorArray = np.array([])
         bestError = 0.
         bestErrorIndex = 0
         for p in range(1, limit+1):
-
-            # if(p == 3):
-            #     #print("I am a quadratic")
-            #     y_plot = sampl
-            #     a = [0., 0., 0.]
-            #     error = 10000000000000.
-            #     y_set = sampl
-            #     actualErrorArray = np.append(actualErrorArray, error)
-            #     error = error * p
-            #     errorArray = np.append(errorArray, error)
-            #     ySetArray.append(y_set)
-            #     powerSet.append(a)
-            # else:
-                print(p)
-                y_plot, a = leastSquaresPoly(sampleX[l], sampleY[l], p)
-                error, y_set, a = squaredError(y_plot, ys[l*segmentLength: l*segmentLength+segmentLength], a)
+            #Make Quadratic functions unreachable with errors always too high
+            if(p == 3):
+                y_plot = sampl
+                a = [0., 0., 0.]
+                error = 1000000000000000000.
+                y_set = sampl
                 actualErrorArray = np.append(actualErrorArray, error)
-                #Scaled Error
                 error = error * p
-                errorArray = np.append(errorArray, error)
+                ScaledErrorArray = np.append(ScaledErrorArray, error)
                 ySetArray.append(y_set)
                 powerSet.append(a)
-
-
+            else:
+            #Regular LSR plot that only works for Linear and Cubic
+                y_plot, a = leastSquaresPoly(sampleX[l], sampleY[l], p)
+                error, y_set, a = squaredError(y_plot, ys[l*segmentLength: l*segmentLength+segmentLength], a)
+                #Actual Error value
+                actualErrorArray = np.append(actualErrorArray, error)
+                #Scaled Error value
+                error = error * (p)
+                ScaledErrorArray = np.append(ScaledErrorArray, error)
+                ySetArray.append(y_set)
+                powerSet.append(a)
         #Sine function
         y_plot, a = leastSquaresSin(sampleX[l], sampleY[l])
         sinePlot = np.array(y_plot)
         error, y_set, a = squaredError(y_plot, ys[l*segmentLength: l*segmentLength+segmentLength], a)
         actualErrorArray = np.append(actualErrorArray, error)
-        error = error * 1.25
-        errorArray = np.append(errorArray, error)
+        error = error * 2
+        ScaledErrorArray = np.append(ScaledErrorArray, error)
         ySetArray.append(y_set)
         powerSet.append(a)
-        #Exp function
-        y_plot, a = leastSquaresExp(sampleX[l], sampleY[l])
-        expPlot = np.array(y_plot)
-        error, y_set, a = squaredError(y_plot, ys[l*segmentLength: l*segmentLength+segmentLength], a)
-        actualErrorArray = np.append(actualErrorArray, error)
-        error = error * 1.25
-        errorArray = np.append(errorArray, error)
-        ySetArray.append(y_set)
-        powerSet.append(a)
+
         y_plot = None
         a = None
         error = 0.
         y_set = None
-        print(actualErrorArray)
-        bestErrorIndex = np.argmin(errorArray)
+        #Select Best Error from Scaled errors
+        bestErrorIndex = np.argmin(ScaledErrorArray)
         bestError = actualErrorArray[bestErrorIndex]
-
+        #Select actual error using index from scaled error
         actualError = actualErrorArray[bestErrorIndex]
         bestPowerSet = powerSet[bestErrorIndex]
         finalPowerSet.append(bestErrorIndex)
         bestYs.append(ySetArray[bestErrorIndex])
-
         totalError = totalError + actualError
-
-        print("Best Error from coefficients:", bestPowerSet, "with error:", bestError, "for segment", l)
         powerSet.clear()
         ySetArray.clear()
+
     y_final_plot = np.array(bestYs)
 
-    print("TotalError:", totalError)
+    print(totalError)
     if(plot == True):
         utilities.view_data_segments(xs , ys, y_final_plot, finalPowerSet, fileName)
 
