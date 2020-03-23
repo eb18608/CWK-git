@@ -46,5 +46,5 @@ def view_data_segments(xs, ys, y_final_plot, finalPowerSet, filename):
         line = plot.plot(xs[start: end], y_final_plot[l].T, label='Regression Line:' +str(l))
 
     plot.legend(loc=2, fontsize='small', title_fontsize='small')
-    plt.savefig('Plots/'+filename[11:-4], dpi = 400)
+    # plt.savefig('Plots/'+filename[11:-4], dpi = 400)
     plt.show()
