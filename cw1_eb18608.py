@@ -3,13 +3,10 @@ import sys
 import numpy as np
 from matplotlib import pyplot as plt
 import utilities
-
-#TODO:
-#Basic_3 still gives a Cubic and I think it should be a quadratic
-#Basic 4 segment 1 gives a Cubic and I think it should be a quadratic
-
-
+#Define Segment Length
 segmentLength = 20
+
+#Split input arrays to segments
 def splitSegment(xs, ys):
     divider = 0
     if(len(xs) >= segmentLength):
@@ -59,6 +56,7 @@ def leastSquaresSin(sampleX, sampleY):
 
     return y_plot, a
 
+#LSR for Exponential Fucntions
 def leastSquaresExp(sampleX, sampleY):
 
     sinX = np.exp(sampleX)
@@ -77,6 +75,7 @@ def leastSquaresExp(sampleX, sampleY):
 
     return y_plot, a
 
+#Func to calculate Squared Error
 def squaredError(y_plot, ys, a):
     error = 0.
     for i in range((len(ys))):
@@ -86,6 +85,7 @@ def squaredError(y_plot, ys, a):
 
     return error, y_plot, a
 
+#I/O function to read in arguments from commandline
 def inputOutput():
     if (len(sys.argv) > 1):
         fileName = "train_data/" + sys.argv[1]
@@ -96,12 +96,12 @@ def inputOutput():
                 return plot, fileName
         else:
             plot = False
-            print("Enter '--plot' as second argument in order to view the graph")
             return plot, fileName
     else:
         print("Enter a valid file format: filename.format")
         exit()
 
+#Altered view_data_segment function from utilities to give coloured plots and legends
 def view_data_segments(xs, ys, y_final_plot, finalPowerSet, filename):
     """Visualises the input file with each segment plotted in a different colour.
     Args:
@@ -162,14 +162,14 @@ def main():
         bestError = 0.
         bestErrorIndex = 0
         for p in range(1, limit+1):
-            #Make Quadratic functions unreachable with errors always too high
+            #Make Quadratic functions unreachable with errors always too high (max float value)
             if(p == 3):
                 y_plot = sampl
                 a = [0., 0., 0.]
-                error = 1000000000000000000.
+                error = sys.float_info.max
                 y_set = sampl
                 actualErrorArray = np.append(actualErrorArray, error)
-                error = error * p
+                error = error
                 ScaledErrorArray = np.append(ScaledErrorArray, error)
                 ySetArray.append(y_set)
                 powerSet.append(a)
@@ -200,6 +200,7 @@ def main():
         y_set = None
         #Select Best Error from Scaled errors
         bestErrorIndex = np.argmin(ScaledErrorArray)
+
         bestError = actualErrorArray[bestErrorIndex]
         #Select actual error using index from scaled error
         actualError = actualErrorArray[bestErrorIndex]
@@ -211,7 +212,6 @@ def main():
         ySetArray.clear()
 
     y_final_plot = np.array(bestYs)
-
     print(totalError)
     if(plot == True):
         view_data_segments(xs , ys, y_final_plot, finalPowerSet, fileName)
